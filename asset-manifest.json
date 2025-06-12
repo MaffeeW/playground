@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/MaffeeW/playground/static/css/main.002207cf.css",
-    "main.js": "/MaffeeW/playground/static/js/main.0f845389.js",
+    "main.css": "/MaffeeW/playground/static/css/main.67348fbc.css",
+    "main.js": "/MaffeeW/playground/static/js/main.437cd7a1.js",
     "static/js/453.bbb49839.chunk.js": "/MaffeeW/playground/static/js/453.bbb49839.chunk.js",
     "index.html": "/MaffeeW/playground/index.html",
-    "main.002207cf.css.map": "/MaffeeW/playground/static/css/main.002207cf.css.map",
-    "main.0f845389.js.map": "/MaffeeW/playground/static/js/main.0f845389.js.map",
+    "main.67348fbc.css.map": "/MaffeeW/playground/static/css/main.67348fbc.css.map",
+    "main.437cd7a1.js.map": "/MaffeeW/playground/static/js/main.437cd7a1.js.map",
     "453.bbb49839.chunk.js.map": "/MaffeeW/playground/static/js/453.bbb49839.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.002207cf.css",
-    "static/js/main.0f845389.js"
+    "static/css/main.67348fbc.css",
+    "static/js/main.437cd7a1.js"
   ]
 }
