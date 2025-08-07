@@ -1,25 +1,3 @@
- HEAD
-import logo from './logo.svg';
-import './App.css';
-
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-
 import React, { useState, useEffect, useCallback } from 'react';
 import './index.css'; // Make sure this line exists to import your CSS
 
@@ -142,7 +120,7 @@ function App() {
       let newAssignees;
       if (isAssigned) {
         // If already assigned, unassign them
-        newAssignees = currentAssignees.filter(id => id !== personId);
+        newAssignees = currentAssignments.filter(id => id !== personId);
       } else {
         // If not assigned, assign them
         newAssignees = [...currentAssignees, personId];
@@ -155,7 +133,7 @@ function App() {
   };
 
 
-  // Calculates the totals for each person based on assignments, tax, and service charge
+  // Calculates the totals for each person based on assignments, service charge first, then tax
   const calculateTotals = useCallback(() => {
     const newTotals = people.reduce((acc, person) => ({ ...acc, [person.id]: 0 }), {});
     let totalBillAmountBeforeExtras = 0; // Sum of all item prices
@@ -177,26 +155,36 @@ function App() {
       }
     });
 
-    // Calculate overall tax and service charge amounts
-    const totalTaxAmount = totalBillAmountBeforeExtras * (taxPercentage / 100);
+    // UPDATED CALCULATION SEQUENCE: Service Charge first, then Tax
+    
+    // Step 1: Calculate and add service charge to subtotal
     const totalServiceChargeAmount = totalBillAmountBeforeExtras * (serviceChargePercentage / 100);
-
-    // Distribute costs
-    const totalAssignedValue = Object.values(personItemSubtotals).reduce((sum, val) => sum + val, 0);
+    const serviceChargePerPerson = people.length > 0 ? totalServiceChargeAmount / people.length : 0;
+    
+    // Step 2: Calculate subtotal + service charge for each person
+    const personSubtotalWithService = people.reduce((acc, person) => {
+      acc[person.id] = (personItemSubtotals[person.id] || 0) + serviceChargePerPerson;
+      return acc;
+    }, {});
+    
+    // Step 3: Calculate total after service charge (for tax calculation base)
+    const totalAfterServiceCharge = totalBillAmountBeforeExtras + totalServiceChargeAmount;
+    
+    // Step 4: Calculate tax on the total that includes service charge
+    const totalTaxAmount = totalAfterServiceCharge * (taxPercentage / 100);
+    
+    // Step 5: Distribute tax proportionally based on each person's subtotal + service charge
+    const totalAssignedValueWithService = Object.values(personSubtotalWithService).reduce((sum, val) => sum + val, 0);
 
     people.forEach(person => {
-      let personTotal = personItemSubtotals[person.id] || 0;
+      let personTotal = personSubtotalWithService[person.id] || 0;
 
-      // Add proportional tax based on their calculated subtotal
-      const taxShare = totalAssignedValue > 0
-        ? totalTaxAmount * (personTotal / totalAssignedValue)
+      // Add proportional tax based on their subtotal + service charge
+      const taxShare = totalAssignedValueWithService > 0
+        ? totalTaxAmount * (personTotal / totalAssignedValueWithService)
         : (people.length > 0 ? totalTaxAmount / people.length : 0); // If no items assigned, split tax equally
+      
       personTotal += taxShare;
-
-      // Add equal share of service charge
-      const serviceChargePerPerson = people.length > 0 ? totalServiceChargeAmount / people.length : 0;
-      personTotal += serviceChargePerPerson;
-
       newTotals[person.id] = personTotal;
     });
 
@@ -258,21 +246,7 @@ function App() {
           <div className="section-container">
             <h3 className="text-lg font-bold text-gray-800 mb-3">Additional Charges</h3>
             <div className="flex flex-col gap-4">
-              <div className="flex-1">
-                <label htmlFor="tax-percentage" className="block text-gray-700 text-sm font-bold mb-2">
-                  Tax (%)
-                </label>
-                <input
-                  type="number"
-                  id="tax-percentage"
-                  className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-                  value={taxPercentage}
-                  onChange={handleTaxChange}
-                  placeholder="0"
-                  min="0"
-                  max="100"
-                />
-              </div>
+              {/* Service Charge first in UI to match calculation sequence */}
               <div className="flex-1">
                 <label htmlFor="service-charge-percentage" className="block text-gray-700 text-sm font-bold mb-2">
                   Service Charge (%)
@@ -283,6 +257,22 @@ function App() {
                   className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                   value={serviceChargePercentage}
                   onChange={handleServiceChargeChange}
+                  placeholder="0"
+                  min="0"
+                  max="100"
+                />
+              </div>
+              {/* Tax second in UI to match calculation sequence */}
+              <div className="flex-1">
+                <label htmlFor="tax-percentage" className="block text-gray-700 text-sm font-bold mb-2">
+                  Tax (%)
+                </label>
+                <input
+                  type="number"
+                  id="tax-percentage"
+                  className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                  value={taxPercentage}
+                  onChange={handleTaxChange}
                   placeholder="0"
                   min="0"
                   max="100"
@@ -379,7 +369,6 @@ function App() {
           </div>
         )}
       </div>
- 2c5acac (Re-initialized project and added bill splitter app code)
     </div>
   );
 }
